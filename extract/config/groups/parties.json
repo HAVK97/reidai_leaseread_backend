@@ -1,0 +1,104 @@
+{
+  "group_id": "parties",
+  "label": "Parties",
+  "description": "Original and current lessor/lessee names plus guarantor and surety identification from cover, particulars, prescribed clauses, guarantor/surety clauses and definitions.",
+  "schema_version": "1.0",
+  "prompt_version": "1.5",
+  "semantic_topics": [
+    "guarantor_surety"
+  ],
+  "whole_sections": [
+    "front_matter:COVER",
+    "front_matter:LEASE_PARTICULARS",
+    "front_matter:PRESCRIBED_CLAUSES"
+  ],
+  "definition_allowlist": [
+    "Landlord",
+    "Tenant",
+    "Lessor",
+    "Lessee",
+    "Guarantor",
+    "Surety"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "lease_summary",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative text and schedules — binding party names after any assignment, novation or variation.\n2. Structured party sources — lease summary / particulars, prescribed clauses, party tables, recitals, execution blocks and equivalent labelled party evidence. Use whichever is clearest for this lease; do not privilege any one label or source name.\n3. Cover page — party names on the deed front sheet.\n4. Definitions — interpret defined terms; do not override clear operative or structured party wording.\n5. Annexed or old lease segments — use for original parties only when the current segment is a later deed and names the predecessor.\n\nCONTEXT — PARTIES:\n- 'Original' lessor/lessee = the landlord and tenant at grant of the lease (or the parties named in the original deed), even if labels say Landlord/Tenant or Lessor/Lessee.\n- 'Current' lessor/lessee = the parties bound by the lease as it stands now (after assignment, transfer, deed of variation, or reversionary change). If the pack shows only one lease with no change of party, current equals original.\n- Return full legal entity names only (e.g. 'BON MARCHÉ LIMITED') — no addresses, company numbers, or role labels.\n- Guarantor and Surety are distinct legal roles. Never treat one as the other.\n- Guarantor/Surety existence means an actual party is identified for this lease. A definition, blank covenant schedule, 'New Surety', replacement/contingent provision, or wording such as 'if the Surety' / 'if any' does not by itself mean that a guarantor or surety exists.\n- A structured party source stating that a role is None, N/A, not applicable, blank, or otherwise absent is conclusive unless a later/current operative deed expressly names that party.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- Quotes must be exact short substrings copied from a single evidence row. Do not compose breadcrumb/table-path quotes such as 'Parties | Landlord | Name' unless that exact text appears in the pack.\n- Never quote table separator text, markdown pipes, or multiple glued table cells; quote only a short phrase visible on one evidence row.\n- status=found requires at least one quote from the pack.\n- status=not_present means structured party evidence shows no such party, or the lease expressly states there is no such party.\n- status=unclear means the name cannot be determined or evidence is contradictory.\n- For yes_no fields: return exactly 'Yes' or 'No'.\n- For name fields: return the legal name only, 'Name not found', or blank as specified per field.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following parties fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "parties_original_lessor",
+      "label": "Original Lessor",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return the original landlord's full legal name at grant only. Use Landlord/Lessor from the clearest structured party source, or the lessor named on the cover deed. Strip labels and registration details. If the pack contains no original lessor name, return blank with status=unclear.",
+      "required": true
+    },
+    {
+      "field_id": "parties_current_lessor",
+      "label": "Current Lessor",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return the current landlord's full legal name as bound by the operative lease today. If an assignment, transfer or variation names a new landlord, use that name. If only the original grant is in the pack with no change of landlord, return the same name as Original Lessor. Return blank with status=unclear if the current name cannot be determined or the text says it is unclear/not found.",
+      "required": true
+    },
+    {
+      "field_id": "parties_original_lessee",
+      "label": "Original Lessee",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return the original tenant's full legal name at grant only. Use Tenant/Lessee from the clearest structured party source, or the lessee named on the cover deed. Strip labels and registration details. Return blank with status=unclear if not stated.",
+      "required": true
+    },
+    {
+      "field_id": "parties_current_lessee",
+      "label": "Current Lessee",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return the current tenant's full legal name as bound by the operative lease today. If an assignment or deed names a successor tenant, use that name. If only the original grant is in the pack with no change of tenant, return the same name as Original Lessee. Return blank with status=unclear if the current name cannot be determined or the text says it is unclear/not found.",
+      "required": true
+    },
+    {
+      "field_id": "parties_guarantor_exists",
+      "label": "Guarantor Exists",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' only if the evidence identifies a Guarantor as an actual party to this lease, names a Guarantor, or a structured party source states a Guarantor other than 'None'. Return 'No' if structured party evidence states 'Guarantor: None', N/A, not applicable, blank, or otherwise shows no actual guarantor. Do not infer a guarantor exists merely from definitions, replacement/new guarantor provisions, 'if the Guarantor', 'any Guarantor', 'if any', or a schedule/form of guarantor covenants with no named guarantor. Do not treat Surety as Guarantor.",
+      "required": true
+    },
+    {
+      "field_id": "parties_guarantor_name",
+      "label": "Guarantor Name",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "If Guarantor Exists is No, return blank with status=not_present. If Guarantor Exists is Yes but no legal name is stated, return exactly 'Name not found' with status=unclear. Never return 'Name not found' where structured party evidence states 'Guarantor: None' or equivalent; return blank. Otherwise return the guarantor's full legal name only. Never return a surety's name in this field.",
+      "required": true
+    },
+    {
+      "field_id": "parties_surety_exists",
+      "label": "Surety Exists",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' only if the evidence identifies a Surety as an actual party to this lease, names a Surety, or a structured party source states a Surety other than 'None'. Return 'No' if structured party evidence states 'Surety: None', N/A, not applicable, blank, or otherwise lists the lease parties without naming any actual surety. Do not infer a surety exists merely from definitions, 'New Surety', replacement surety provisions, 'if the Surety', 'any Surety', 'if any', or a schedule/form of surety covenants with no named surety. Do not treat Guarantor as Surety.",
+      "required": true
+    },
+    {
+      "field_id": "parties_surety_name",
+      "label": "Surety Name",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "If Surety Exists is No, return blank with status=not_present. If Surety Exists is Yes but no legal name is stated, return exactly 'Name not found' with status=unclear. Never return 'Name not found' where structured party evidence states 'Surety: None' or equivalent; return blank. Otherwise return the surety's full legal name only. Never return a guarantor's name in this field.",
+      "required": true
+    }
+  ]
+}

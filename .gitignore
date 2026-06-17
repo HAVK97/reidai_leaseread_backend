@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime / generated artefacts
+data/
+parse_outputs/
+preextract_outputs/
+archives/
+Leases/

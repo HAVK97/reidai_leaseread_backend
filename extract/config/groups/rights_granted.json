@@ -1,0 +1,82 @@
+{
+  "group_id": "rights_granted",
+  "label": "Rights Granted",
+  "description": "Parking rights (vehicle, bicycle, motorbike), fire exit / escape routes, and loading or unloading rights from Schedule 2 and rights-granted operative clauses.",
+  "schema_version": "1.0",
+  "prompt_version": "1.4",
+  "semantic_topics": [
+    "rights_granted"
+  ],
+  "whole_sections": [],
+  "definition_allowlist": [
+    "Rights Granted",
+    "Easement",
+    "Easements",
+    "Parking",
+    "Parking Space",
+    "Parking Spaces",
+    "Car Parking",
+    "Fire Escape",
+    "Fire Exit",
+    "Loading Bay",
+    "Conduits",
+    "Utilities",
+    "Premises"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — especially Schedule 2 (Rights Granted) or equivalent rights schedule.\n2. Definitions — interpret defined terms (e.g. Fire Escape, Parking); do not override clear operative wording.\n3. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — RIGHTS GRANTED:\n- Parking and Loading fields capture rights expressly granted to the tenant — not tenant restrictions or landlord reservations (Schedule 3).\n- Parking fields: distinguish car/vehicle, bicycle/cycle, and motorbike/motorcycle parking. A general 'parking' right without type counts for vehicle parking unless bicycles or motorcycles are expressly excluded.\n- Loading/Unloading covers loading bays, service yards, delivery areas, or express rights to load and unload goods or materials.\n\nFIRE EXIT (rights_granted_fire_exit) — different rule from parking/loading:\n- Question: does the lease show fire exits, means of escape, fire doors, or a defined Fire Escape serving the Premises or Building?\n- Return Yes if the pack mentions any of: fire exit, emergency exit, means of escape, fire door, Fire Escape (defined term), fire escape route, fire-fighting equipment in connection with escape, or egress in an emergency — in a rights schedule, definition, landlord services, OR tenant covenant (e.g. not to obstruct means of escape or lock fire doors).\n- Return No only when the pack has zero such wording.\n- When value is Yes: status=found, include at least one short verbatim quote (8-25 words) from the pack so supporting evidence can be resolved.\n\nRULES:\n- Base every answer ONLY on the evidence pack below. Do not speculate about text not in the pack.\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the pack, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n\nSTATUS (parking and loading only; fire exit uses FIRE EXIT section above):\n- status=found, confidence=high|medium: the pack contains wording that expressly grants this category (or a defined term in the pack clearly grants it).\n- status=not_present, confidence=high: the pack contains NO mention of this category anywhere. Value must be 'No'. Simple absence from the pack is a clear negative, not ambiguous.\n- status=unclear, confidence=low|medium: use ONLY when the pack contains contradictory wording on the same field. Do NOT use unclear merely because a category is omitted or because the pack is short.\n\nQUOTES:\n- Parking/loading not_present: quotes may be []. Do not quote unrelated definitions (e.g. Conduits).\n- Fire exit Yes: at least one quote required. Fire exit No (no mention in pack): quotes may be [].\n\nFor parking fields: value must be exactly 'No', or 'Yes, N spaces' (e.g. 'Yes, 2 spaces'), or 'Yes, [concise summary]' with no extra punctuation or sentences.\n- For yes_no fields: return exactly 'Yes' or 'No'.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following rights granted fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "rights_granted_vehicle_parking",
+      "label": "Vehicle Parking",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "State whether car / vehicle / motor car parking rights are granted to the tenant. If a specific number of car or vehicle spaces is stated, return 'Yes, N spaces' (e.g. 'Yes, 2 spaces'). If a right exists but no number is stated, return 'Yes, [concise summary]' (e.g. 'Yes, use of allocated spaces in the car park'). Do not include bicycle or motorcycle parking in this field. If the pack contains no mention of vehicle or car parking, return 'No' with status=not_present and confidence=high.",
+      "required": true
+    },
+    {
+      "field_id": "rights_granted_bicycle_parking",
+      "label": "Bicycle Parking",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "State whether bicycle or cycle parking rights are granted. If a number of bicycle/cycle spaces is stated, return 'Yes, N spaces'. If a right exists without a number (e.g. communal bicycle racks), return 'Yes, [concise summary]'. If the pack contains no mention of bicycle or cycle parking, return 'No' with status=not_present and confidence=high.",
+      "required": true
+    },
+    {
+      "field_id": "rights_granted_motorbike_parking",
+      "label": "Motorbike Parking",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "State whether motorbike or motorcycle parking rights are granted. If a number is stated, return 'Yes, N spaces'. If a right exists without a number, return 'Yes, [concise summary]'. If the pack contains no mention of motorbike or motorcycle parking, return 'No' with status=not_present and confidence=high.",
+      "required": true
+    },
+    {
+      "field_id": "rights_granted_fire_exit",
+      "label": "Fire Exit",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the evidence pack shows fire exits, means of escape, fire doors, or a defined Fire Escape on or serving the Premises or Building — including in rights schedules, definitions, landlord services, or tenant covenants (e.g. not to obstruct means of escape or lock fire doors). Return 'No' with status=not_present and confidence=high only when the pack has no such wording. When value is 'Yes', use status=found and include at least one short verbatim quote from the pack (8-25 words). Use status=unclear only if the pack contradicts itself.",
+      "required": true
+    },
+    {
+      "field_id": "rights_granted_loading_unloading",
+      "label": "Loading/Unloading",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the pack mentions a loading bay, service yard, delivery area, or an express right to load and unload goods or materials to/from the premises. If the pack contains no mention of loading or unloading rights, return 'No' with status=not_present and confidence=high. Use status=unclear only if the pack contradicts itself on this point.",
+      "required": true
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "group_id": "break_rights",
+  "label": "Break Rights",
+  "description": "Conditions the tenant and landlord must satisfy to exercise break options under the lease.",
+  "schema_version": "1.0",
+  "prompt_version": "1.4",
+  "semantic_topics": [
+    "break_option"
+  ],
+  "whole_sections": [
+    "front_matter:LEASE_PARTICULARS",
+    "front_matter:PRESCRIBED_CLAUSES"
+  ],
+  "definition_allowlist": [
+    "Break Date",
+    "Break Dates",
+    "Break Notice",
+    "Break Clause",
+    "Break Option",
+    "Break Right",
+    "Break Fee",
+    "Break Premium",
+    "Tenant Break",
+    "Landlord Break",
+    "Break Conditions",
+    "Vacant Possession"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "lease_summary",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative break clause(s) and any break notice schedule — the binding text.\n2. Lease summary / particulars — break fee amounts, break dates and option-to-break labels when operative clauses cross-reference them.\n3. Definitions — interpret defined break terms; do not override clear operative wording.\n4. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — BREAK RIGHTS:\n- Capture pre-conditions the tenant or landlord must satisfy to exercise a contractual break option (notice period, form of notice, payment of rent/arrears, vacant possession, compliance with covenants, break premium/fee, material breaches tied to the break, etc.).\n- After pre-conditions, include consequences of a successful break in the tenant field when stated (e.g. lease determines on the break date; landlord must repay rent or other sums paid in advance for the period after the break date). These are not landlord break rights — include them under tenant break consequences.\n- When a break fee or premium is referenced without an amount in the operative clause, include the monetary amount from particulars or definitions (e.g. 'pay Break Fee of £12,150 on or before the Break Date').\n- Distinguish tenant-only break from landlord-only break from mutual break — assign conditions to the correct party field only.\n- Do NOT treat the following as break rights or break conditions: forfeiture, re-entry, distress, default termination, insurance destruction termination, rent cesser on damage, or general apportionment/refund clauses unrelated to an express break option.\n- Do not restate the break date(s) alone unless framed as a condition (e.g. notice must specify the break date).\n- If the lease grants a break to one party only, leave the other party's field blank with status=not_present.\n- If no contractual break option exists for either party, both fields blank with status=not_present (high confidence) — even when the evidence pack is empty or only shows forfeiture/insurance termination.\n- Use status=unclear only when the pack suggests a break clause exists but the conditions cannot be determined.\n- value must contain only conditions and consequences explicitly stated in the evidence. Never include meta-commentary about missing, truncated, or unclear information (e.g. do not write 'consequences are unclear', 'other conditions unknown', 'wording is truncated', 'from the current lease extract'). Omit unstated conditions and consequences silently; record gaps, truncation, or supersession only in reasoning and confidence.\n- Use the prefix 'consequence:' in value only when actual consequence wording appears in the evidence.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=not_present means that party has no break right or no stated conditions (e.g. no landlord break, or no tenant break anywhere in the lease).\n- Each summary: one concise structured line starting with the required prefix; semicolons between conditions; no bullet lists; never explain what is absent or incomplete in value.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following break rights fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "break_rights_tenant_conditions",
+      "label": "Tenant Break Conditions",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "If the tenant has a break right, summarise only conditions and consequences explicitly stated in the evidence. Start with exactly `Tenant's Conditions: ` then list pre-conditions separated by semicolons (notice period and form, rent payment, vacant possession, compliance with covenants, break fee/premium with amount when stated in particulars or definitions). End with `consequence:` and stated consequences only when the evidence contains consequence wording; omit consequences entirely when not stated — never note that they are missing or unclear. Do not mention truncation, incomplete extracts, or uncertainty in value. If no tenant break right, return blank with status=not_present. Use status=unclear only when a break clause appears to exist but no conditions can be determined at all.",
+      "required": true
+    },
+    {
+      "field_id": "break_rights_landlord_conditions",
+      "label": "Landlord Break Conditions",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "If the landlord has an express contractual break option (not forfeiture or re-entry), summarise only conditions explicitly stated in the evidence. Start with exactly `Landlord's Conditions: ` then list conditions separated by semicolons. Do not mention truncation, missing text, or uncertainty in value. If no landlord break right, return blank with status=not_present. Do not include forfeiture, re-entry, insurance destruction termination or rent cesser as landlord break conditions.",
+      "required": true
+    }
+  ]
+}

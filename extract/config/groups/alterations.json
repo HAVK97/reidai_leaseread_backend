@@ -1,0 +1,92 @@
+{
+  "group_id": "alterations",
+  "label": "Alterations",
+  "description": "Whether external, internal, structural, non-structural, demountable partition, electrical, and conduits/services alterations are prohibited, permitted, or conditional, including landlord consent requirements.",
+  "schema_version": "1.0",
+  "prompt_version": "1.3",
+  "semantic_topics": [
+    "alterations"
+  ],
+  "whole_sections": [],
+  "definition_allowlist": [
+    "Alteration",
+    "Alterations",
+    "Works",
+    "Improvements",
+    "Structure",
+    "Structural",
+    "Demountable",
+    "Partition",
+    "Conduit",
+    "Conduits",
+    "Services",
+    "Installation",
+    "Licence for Alterations"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — the binding text.\n2. Definitions — interpret defined terms; do not override clear operative wording.\n3. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — ALTERATIONS:\n- Each field is a short narrative summary (one or two sentences) of what the lease permits or forbids for that category of works.\n- State clearly if works are prohibited, permitted freely, permitted only with landlord consent (and whether consent is qualified, e.g. not unreasonably withheld), or subject to other conditions (plans, reinstatement, qualified contractors).\n- If the lease bundles several categories in one clause, allocate the substance to the correct field and you may cross-reference briefly in reasoning only — value must still read as a standalone summary.\n- Do not conflate signage or advertising with alterations unless the lease treats them as alterations for that field.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=not_present means the lease has no specific provision for that sub-category (blank value is correct), or expressly states there is no restriction or no right.\n- status=unclear means the evidence is contradictory, or the pack lacks operative alterations text — not when the lease simply omits a granular sub-category such as electrics or demountable partitions.\n- When the pack contains general alterations clauses but no specific provision for a granular sub-category field, return blank with status=not_present and confidence=high.\n- For each field value: at most two short plain-English sentences; no bullet lists.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following alterations fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "alterations_external",
+      "label": "External Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether external alterations to the demised premises (façade, exterior appearance, shell, windows, shopfront, roof line, etc.) are prohibited, permitted, or only permitted with landlord consent. Include any requirement for prior written consent and whether it is qualified. If the lease is silent on external works specifically, return blank with status=not_present and confidence=high unless internal-only wording clearly excludes externals by implication (then found).",
+      "required": true
+    },
+    {
+      "field_id": "alterations_internal",
+      "label": "Internal Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether internal alterations (non-structural and/or general internal works as distinguished from other fields) are prohibited, permitted, or conditional on landlord consent, plans, or specifications. If structural vs non-structural is split across clauses, capture internal works here at high level and leave structural detail to the structural / non-structural fields.",
+      "required": true
+    },
+    {
+      "field_id": "alterations_structural",
+      "label": "Structural Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether structural alterations (load-bearing, cutting fabric, extensions, new structures, damaging structure, etc.) are prohibited, permitted, or permitted with landlord consent. Include consent wording where stated.",
+      "required": true
+    },
+    {
+      "field_id": "alterations_non_structural",
+      "label": "Non-Structural Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether non-structural alterations are prohibited, permitted, or permitted with landlord approval (including plans/specifications). Include reinstatement obligations tied to such works if stated in the same context.",
+      "required": true
+    },
+    {
+      "field_id": "alterations_demountable_partitions",
+      "label": "Demountable Partition Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether demountable or movable partitions may be installed or altered, and any landlord consent or removal/reinstatement conditions. If the lease does not mention demountable partitions, return blank with status=not_present and confidence=high.",
+      "required": true
+    },
+    {
+      "field_id": "alterations_electrics",
+      "label": "Electrics Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether alterations to electrical installations (rewiring, new circuits, distribution boards, etc.) are prohibited, permitted, or permitted with landlord consent; mention requirements for qualified or competent contractors if stated. If the lease does not specifically address electrical installations, return blank with status=not_present and confidence=high (do not infer from general internal or conduits wording unless electrics are expressly included).",
+      "required": true
+    },
+    {
+      "field_id": "alterations_conduits_services",
+      "label": "Conduits/Services Alterations",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Summarise in one or two sentences whether alterations to conduits, ducts, pipes, wires, or building services serving or within the premises are prohibited, permitted, or permitted with landlord consent. Include references to landlord's services or shared risers where relevant.",
+      "required": true
+    }
+  ]
+}

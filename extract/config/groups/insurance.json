@@ -1,0 +1,172 @@
+{
+  "group_id": "insurance",
+  "label": "Insurance",
+  "description": "Building, plate glass, engineering and third-party insurance: who insures, who pays, loss of rent cover and cessor of rent.",
+  "schema_version": "1.0",
+  "prompt_version": "1.3",
+  "semantic_topics": [
+    "insurance"
+  ],
+  "whole_sections": [
+    "front_matter:LEASE_PARTICULARS"
+  ],
+  "definition_allowlist": [
+    "Insured Risk",
+    "Insured Risks",
+    "Insurance Rent",
+    "Insurance Premium",
+    "Insurance Policy",
+    "Insurer",
+    "Insurers",
+    "Insurance Cover",
+    "Loss of Rent",
+    "Cessor of Rent",
+    "Cesser of Rent",
+    "Reinstatement",
+    "Plate Glass",
+    "All Risks",
+    "Public Liability",
+    "Third Party Liability",
+    "Rent Cesser Period"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "lease_summary",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — the binding text.\n2. Lease summary / particulars — quick reference; if it conflicts with operative text, prefer operative text.\n3. Definitions — interpret defined terms; do not override clear operative wording.\n4. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — INSURANCE:\n- These fields cover insurance covenants: which categories of insurance are required (building, plate glass, engineering, public/third-party liability), who effects (takes out) the policy, who ultimately bears the cost (premium / insurance rent / service charge recharge), whether the landlord's cover extends to loss of rent, the period of any loss-of-rent cover, and whether rent is suspended (cessor of rent) when the premises are damaged and unusable.\n- 'Building Insurance' covers the structure / fabric / shell of the demised premises or the wider building. Tenant covenants to insure interior fit-out alone do not by themselves count.\n- 'Plate Glass Insurance' covers external/internal glass; treat 'glass' or 'plate glass' covenants as in-scope.\n- 'Engineering Insurance' covers plant, machinery, lifts, boilers, pressure vessels, air-conditioning and similar mechanical/electrical equipment.\n- 'Third Party Liability' is a Tenant covenant to maintain public liability or third-party liability cover (typically with a stated minimum sum).\n- 'Loss of Rent' is part of the Landlord's policy covering rental income while reinstatement is under way.\n- 'Cessor of Rent' is the lease provision that suspends, abates or ceases the Tenant's rent if the premises are damaged by an insured risk and rendered unfit for use.\n- 'Policy Effected By' identifies who actually arranges the principal insurance (usually Landlord under modern commercial leases). 'Policy Paid By' identifies who economically bears the cost — use 'Tenant' if the premium is recovered as Insurance Rent or via the service charge.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=not_present means the lease addresses the topic and expressly states there is no such cover or obligation, or a dependent field is not applicable because the parent coverage field is No.\n- status=unclear means the evidence is silent, insufficient, or contradictory.\n- For coverage/responsibility pairs (building, plate glass, engineering): if the coverage field is No or not_present, set the matching responsibility field to status=not_present with blank value — do not use unclear.\n- For yes_no fields: return exactly 'Yes' or 'No'.\n- For Responsibility / Effected By / Paid By fields: return exactly 'Landlord', 'Tenant', or blank if unclear or not stated. Do not return 'Both' — pick the principal party or leave blank with status=unclear.\n- For 'Loss of Rent Period': return only the duration (e.g. '3 years', '36 months') or blank if no period is stated.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following insurance fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "insurance_building",
+      "label": "Building Insurance",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease imposes an obligation on either party to insure the building, structure, premises, demised premises, or shell against loss or damage. Return 'No' only if the lease expressly excludes building insurance or contains no insurance obligation at all. A landlord's covenant to insure the building (commonly recharged via Insurance Rent) counts as 'Yes'.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_building_responsibility",
+      "label": "Building Insurance Responsibility",
+      "format": "enum",
+      "allowed_values": [
+        "Landlord",
+        "Tenant"
+      ],
+      "decision_rule": "Identify who is responsible for arranging or effecting the building insurance policy. Return 'Landlord' if the Landlord covenants to insure the building (the typical position even where the cost is recharged to the Tenant). Return 'Tenant' only if the Tenant is the party obliged to take out the policy. If insurance_building is No or not_present, return blank with status=not_present (responsibility not applicable). Leave blank with status=unclear only when building insurance is Yes but the responsible party is not clearly stated.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_plate_glass",
+      "label": "Plate Glass Insurance",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease mentions an obligation to insure plate glass or all glass at the premises (windows, shopfront, internal glazing). Return 'No' if not mentioned or expressly excluded.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_plate_glass_responsibility",
+      "label": "Plate Glass Insurance Responsibility",
+      "format": "enum",
+      "allowed_values": [
+        "Landlord",
+        "Tenant"
+      ],
+      "decision_rule": "Identify who is responsible for arranging or effecting the plate glass insurance policy (often the Tenant, particularly for retail premises). If insurance_plate_glass is No or not_present, return blank with status=not_present (responsibility not applicable). Leave blank with status=unclear only when plate glass insurance is Yes but the responsible party is not clearly stated.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_engineering",
+      "label": "Engineering Insurance",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease mentions engineering insurance, including cover for plant, machinery, lifts, boilers, pressure vessels, air-conditioning, electrical installations, or similar equipment. Return 'No' if not mentioned or expressly excluded.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_engineering_responsibility",
+      "label": "Engineering Insurance Responsibility",
+      "format": "enum",
+      "allowed_values": [
+        "Landlord",
+        "Tenant"
+      ],
+      "decision_rule": "Identify who is responsible for arranging or effecting the engineering insurance policy. If insurance_engineering is No or not_present, return blank with status=not_present (responsibility not applicable). Leave blank with status=unclear only when engineering insurance is Yes but the responsible party is not clearly stated.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_third_party_liability",
+      "label": "Third Party Liability",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the Tenant is required to maintain public liability or third-party liability insurance (typically with a stated minimum cover amount). Return 'No' if not mentioned or expressly excluded.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_loss_of_rent",
+      "label": "Loss of Rent",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the Landlord's insurance covers loss of rent, loss of rental income, or rental cesser cover during reinstatement following damage by an insured risk. Return 'No' if loss of rent is not part of the insured risks or is expressly excluded.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_loss_of_rent_period",
+      "label": "Loss of Rent Period",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return only the duration of loss of rent cover, expressed as in the lease (e.g. '3 years', '36 months', 'two years'). Do not include surrounding wording. Leave blank if no period is stated or if loss of rent insurance is not mentioned.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_cessor_of_rent",
+      "label": "Cessor of Rent",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease provides that rent (or the Principal Rent) is suspended, abated, or ceases to be payable while the premises are damaged by an insured risk and unfit for occupation or use. Return 'No' if no such suspension applies or rent continues to be payable in all circumstances.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_policy_effected_by",
+      "label": "Policy Effected By",
+      "format": "enum",
+      "allowed_values": [
+        "Landlord",
+        "Tenant"
+      ],
+      "decision_rule": "Identify who takes out the main insurance policy for the building / demised premises. Return 'Landlord' if the Landlord effects the policy (typical for multi-let buildings and most modern FRI leases). Return 'Tenant' only if the Tenant is the party that effects the principal policy. Leave blank with status=unclear if both parties insure different things and no party is clearly the main insurer, or if no insurance obligation is mentioned.",
+      "required": true
+    },
+    {
+      "field_id": "insurance_policy_paid_by",
+      "label": "Policy Paid By",
+      "format": "enum",
+      "allowed_values": [
+        "Landlord",
+        "Tenant"
+      ],
+      "decision_rule": "Identify who ultimately pays the main insurance premium. Return 'Tenant' if the premium is recovered from the Tenant as Insurance Rent, an additional rent, or through the service charge. Return 'Landlord' only if the Landlord absorbs the premium with no recharge. Leave blank with status=unclear if not clearly stated.",
+      "required": true
+    }
+  ]
+}

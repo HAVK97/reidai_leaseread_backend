@@ -1,0 +1,101 @@
+{
+  "group_id": "rent_review_header",
+  "label": "Rent Review — Header Fields",
+  "description": "Core rent review mechanics: first review date, frequency, time of essence, notice, basis of valuation, upwards-only direction.",
+  "schema_version": "1.0",
+  "prompt_version": "1.3",
+  "semantic_topics": [
+    "rent_review"
+  ],
+  "whole_sections": [
+    "front_matter:LEASE_PARTICULARS"
+  ],
+  "definition_allowlist": [
+    "Rent",
+    "Basic Rent",
+    "Yearly Rent",
+    "Review Date",
+    "Review Dates",
+    "First Review Date",
+    "Rent Review Date",
+    "Rent Review Period",
+    "Open Market Rent",
+    "Open Market Value",
+    "Term",
+    "Contractual Term",
+    "Review Period"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "lease_summary",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — the binding text.\n2. Lease summary / particulars — quick reference; if it conflicts with operative text, prefer operative text.\n3. Definitions — interpret defined terms; do not override clear operative wording.\n4. Annexed or old lease segments — use only when no current equivalent exists.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=not_present means the lease has no rent review mechanism for that field, or the answer is legally none/not applicable (blank dates/frequency are OK).\n- status=unclear means evidence is contradictory or genuinely ambiguous — not when the pack simply shows no rent review.\n- When the pack contains operative lease text and no rent review clause, schedule, or definition appears anywhere, use status=not_present with confidence=high for absent fields (not unclear/low).\n- Silence on time of essence defaults to No with confidence=high.\n- For date fields: return DD/MM/YYYY or blank if not determinable.\n- For frequency fields: return 'annually', 'X years' (e.g. '5 years'), or blank.\n- For yes_no fields: return 'Yes' or 'No'.\n- For enum fields: return exactly one of the allowed values or blank.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following rent review fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "rent_review_first_date",
+      "label": "Date, Rent Review Dates",
+      "format": "date",
+      "allowed_values": [],
+      "decision_rule": "Return the first rent review date as DD/MM/YYYY. If multiple review dates are listed (e.g. 2002, 2007, 2012), return only the earliest (first) date. If the lease states 'upwards only rent review' in particulars but no date clause is found in operative text, return blank with status=unclear.",
+      "required": true
+    },
+    {
+      "field_id": "rent_review_frequency",
+      "label": "Frequency, Rent Review Frequency",
+      "format": "frequency",
+      "allowed_values": [],
+      "decision_rule": "Return the review cycle as 'annually' or 'X years' (e.g. '5 years'). Derive from the pattern of review dates (e.g. every 5 years if dates fall at 5-year intervals) or from explicit wording such as 'every five years'. If only one review date is stated and no cycle is expressed, return blank.",
+      "required": true
+    },
+    {
+      "field_id": "rent_review_time_of_essence",
+      "label": "Time of Essence",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease or a rent review clause expressly states that time is of the essence (or uses equivalent language). Return 'No' if the lease expressly excludes time of the essence, or if there is no such statement (silence defaults to No for English commercial leases).",
+      "required": true
+    },
+    {
+      "field_id": "rent_review_notice_provisions",
+      "label": "Notice Provisions",
+      "format": "yes_no_with_detail",
+      "allowed_values": [],
+      "decision_rule": "Return 'No' if there are no notice requirements to trigger or settle a rent review. Return 'Yes, [concise action summary]' if the lease requires any party to serve notice — describe who must serve, the form or method required, and any relevant time period. Keep to one sentence. Example: 'Yes, the Landlord must serve a written trigger notice not less than six months before the review date.'",
+      "required": true
+    },
+    {
+      "field_id": "rent_review_basis_of_valuation",
+      "label": "Basis of Valuation",
+      "format": "enum",
+      "allowed_values": [
+        "Open Market Value",
+        "Indexation (RPI)",
+        "Indexation (CPI)",
+        "Stepped rent",
+        "Fixed increase",
+        "Turnover rent",
+        "No rent review"
+      ],
+      "decision_rule": "Return the basis on which the reviewed rent is calculated. 'Open Market Value' applies when the lease refers to open market rent, willing landlord/willing tenant assumptions, or RICS valuation. 'Indexation (RPI)' / 'Indexation (CPI)' applies when rent increases are tied to the relevant index. 'Stepped rent' or 'Fixed increase' applies when the increase is pre-agreed. 'Turnover rent' applies when rent is calculated as a percentage of turnover. 'No rent review' applies when the lease expressly excludes or contains no review mechanism. Return blank if the mechanism cannot be identified from the pack.",
+      "required": true
+    },
+    {
+      "field_id": "rent_review_upwards_only",
+      "label": "Upwards Only",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Answer the question: is this an upwards-only rent review (i.e. the rent cannot be reduced on review, only maintained or increased)? Return 'Yes' if the lease contains wording such as 'upwards only', 'shall not be less than the passing rent', or equivalent. Return 'No' if the rent can go down on review (open review) or if there is no review mechanism.",
+      "required": true
+    }
+  ]
+}

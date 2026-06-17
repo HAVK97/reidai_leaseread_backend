@@ -1,0 +1,136 @@
+{
+  "group_id": "service_charge",
+  "label": "Service Charge",
+  "description": "Sinking fund, payments on account, ad hoc demands, scope of recoverable costs (building, services, common parts), and budget/reconciliation mechanics.",
+  "schema_version": "1.0",
+  "prompt_version": "1.2",
+  "semantic_topics": [
+    "service_charge"
+  ],
+  "whole_sections": [],
+  "definition_allowlist": [
+    "Service Charge",
+    "Service Charges",
+    "Estate Charge",
+    "Estate Service Charge",
+    "Common Parts",
+    "Common Areas",
+    "Building",
+    "Estate",
+    "Sinking Fund",
+    "Reserve Fund",
+    "Estimated Service Charge",
+    "Interim Service Charge",
+    "Balancing Charge",
+    "Certificate of Expenditure"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — the binding text.\n2. Definitions — interpret defined terms; do not override clear operative wording.\n3. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — SERVICE CHARGE:\n- These fields concern the tenant's liability for service charge, estate charge, or similar cost-sharing: whether there is a sinking/reserve fund to which the tenant must contribute; whether payments must be made in advance (on account, interim or estimated charges); whether the landlord can demand extra one-off or irregular payments outside the usual budget cycle; what categories of cost are included in the charge (main building/structure vs mechanical services vs internal common parts vs estate-wide external facilities); and whether the lease sets out a budget/estimate process and year-end reconciliation (balancing payments, certificates of expenditure, surplus or deficit).\n- 'Sinking Fund' requires an express tenant contribution obligation to a sinking fund or reserve fund — a landlord-only reserve without tenant contribution is 'No'.\n- Scope fields (Building, Building Services, Common Parts of the Building, Common Parts of the Estate) ask whether the listed categories of cost are recoverable through the service charge, not whether the tenant performs the work directly.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=not_present means the lease addresses the topic and expressly excludes it or states there is no such obligation (use sparingly).\n- status=unclear means the evidence is silent, insufficient, or contradictory.\n- For yes_no fields: return exactly 'Yes' or 'No'.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following service charge fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "service_charge_sinking_fund",
+      "label": "Sinking Fund",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' only if the lease provides for a sinking fund or reserve fund and expressly requires the Tenant to contribute to it (pay into it, provide sums for it, or similar). Return 'No' if there is no sinking/reserve fund, or the fund exists but the Tenant has no stated contribution obligation, or the topic is not dealt with.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_on_account",
+      "label": "On Account",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the Tenant must pay service charge in advance — by interim charge, estimated service charge, payments on account, quarterly instalments of estimated costs, or equivalent wording. Return 'No' if the lease only provides for payment in arrears after actual costs are certified and there is no advance payment mechanism.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_ad_hoc_payments",
+      "label": "Ad-Hoc Payments",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the Landlord may demand additional one-off or irregular service charge payments outside the normal estimated or budgeted service charge (e.g. further sums on notice, additional contribution for unforeseen expenditure). Return 'No' if service charge is strictly limited to the estimated budget and year-end balancing only.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_building",
+      "label": "Building",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if service charge covers (or is stated to include costs relating to) the main building, structure, exterior, roof, foundations, shell, common parts of the Building (capitalised or not), or the Estate as a physical structure. Return 'No' if the charge is narrowly drawn and expressly excludes structural or building-wide costs, or if no building-related costs are included.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_building_services",
+      "label": "Building Services",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if service charge includes building services such as lifts, HVAC, air conditioning, plant, machinery, boilers, water supply, drainage, electrical systems, fire systems, or other mechanical/electrical services. Return 'No' if such services are excluded or not mentioned as recoverable.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_common_parts_building",
+      "label": "Common Parts of the Building",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if service charge covers internal common parts of the building such as entrance halls, lobbies, staircases, lift shafts/landings, corridors, or shared internal areas. Return 'No' if only the demised premises or estate-wide external areas are mentioned with no internal common parts.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_common_parts_estate",
+      "label": "Common Parts of the Estate",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if service charge covers estate-wide or external shared facilities such as access roads, car parks, landscaping, footpaths, estate circulation areas, or shared external estate infrastructure. Return 'No' if the charge is limited to the building footprint with no estate-wide element.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_budget_process",
+      "label": "Budget Process",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease describes the Landlord preparing, consulting on, or providing a budget, estimate, or statement of anticipated service charge expenditure for a forthcoming period. Return 'No' if there is no budget or estimate process described.",
+      "required": true
+    },
+    {
+      "field_id": "service_charge_reconciliation_process",
+      "label": "Reconciliation Process",
+      "format": "yes_no",
+      "allowed_values": [
+        "Yes",
+        "No"
+      ],
+      "decision_rule": "Return 'Yes' if the lease describes year-end or period-end reconciliation of estimated service charge against actual costs, including balancing charge, surplus, deficit, adjustment, credit, or a certificate of actual expenditure. Return 'No' if only fixed or final sums apply with no reconciliation machinery.",
+      "required": true
+    }
+  ]
+}

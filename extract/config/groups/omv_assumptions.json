@@ -1,0 +1,124 @@
+{
+  "group_id": "omv_assumptions",
+  "label": "Open Market Value — Assumptions",
+  "description": "Assumptions the lease prescribes for determining open market rent on review (what the hypothetical letting is assumed to be).",
+  "schema_version": "1.0",
+  "prompt_version": "1.2",
+  "semantic_topics": [
+    "rent_review"
+  ],
+  "whole_sections": [],
+  "definition_allowlist": [
+    "Open Market Rent",
+    "Open Market Value",
+    "Willing Landlord",
+    "Willing Tenant",
+    "Vacant Possession",
+    "Term",
+    "Contractual Term",
+    "Assumption",
+    "Assumptions"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — the binding text.\n2. Definitions — interpret defined terms; do not override clear operative wording.\n3. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — OMV ASSUMPTIONS:\nThese fields describe what the hypothetical open market letting is assumed to be for rent review purposes. 'Yes' means the assumption is expressly stated in the lease. 'No' means the assumption is expressly excluded or contradicted. 'N/A' means there is no open market rent review mechanism in this lease.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- For yes_no_na fields: return exactly 'Yes', 'No', or 'N/A'.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following open market value assumption fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "omv_assumption_as_whole",
+      "label": "As Whole",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies that the open market rent is to be assessed on the assumption that the premises are let as a whole (i.e. not in parts). Return 'No' if expressly excluded. Return 'N/A' if no OMV review.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_in_part",
+      "label": "In Part",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies an assumption that the premises may be let in parts or floor by floor. Return 'No' if not stated or expressly excluded. Return 'N/A' if no OMV review.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_without_fine_premium",
+      "label": "Without Fine/Premium",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies the assumption that the letting is without a fine or premium (i.e. no capital payment, rent only). Return 'No' if not stated. Return 'N/A' if no OMV review.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_vacant_possession",
+      "label": "Vacant Possession, Open Market Value",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies the assumption that the premises are available with vacant possession. Return 'No' if not stated or expressly excluded. Return 'N/A' if no OMV review.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_fit_for_occupation",
+      "label": "Fit For Immediate Occupation & Use",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies the assumption that the premises are fit for immediate occupation and use (i.e. in a condition ready to use, ignoring any fit-out required). Return 'No' if not stated. Return 'N/A' if no OMV review.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_term",
+      "label": "Term, Open Market Value",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return the term assumed for the hypothetical letting, e.g. '10 years', '15 years', 'The residue of the term', 'A term expiring on 24th December 2045'. Return 'N/A' if no OMV review, or blank if not identifiable from the pack.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_lease_terms",
+      "label": "Lease Terms",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies the assumption that the hypothetical letting is on the same terms and conditions as the actual lease (other than as to rent and term). Return 'No' if not stated. Return 'N/A' if no OMV review.",
+      "required": true
+    },
+    {
+      "field_id": "omv_assumption_willing_parties",
+      "label": "Willing Parties, Open Market Value",
+      "format": "yes_no_na",
+      "allowed_values": [
+        "Yes",
+        "No",
+        "N/A"
+      ],
+      "decision_rule": "Return 'Yes' if the lease specifies that open market rent is assessed on the basis of a willing landlord and willing tenant (arms-length transaction). This is standard OMV language; return 'Yes' if present in the rent review clause even if only implied by 'open market'. Return 'No' only if expressly contradicted. Return 'N/A' if no OMV review.",
+      "required": true
+    }
+  ]
+}

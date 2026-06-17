@@ -1,0 +1,50 @@
+{
+  "group_id": "property",
+  "label": "Property",
+  "description": "Property address and demised premises description from cover, particulars, prescribed clauses, premises clauses and definitions.",
+  "schema_version": "1.0",
+  "prompt_version": "1.3",
+  "semantic_topics": [
+    "premises"
+  ],
+  "whole_sections": [
+    "front_matter:COVER",
+    "front_matter:LEASE_PARTICULARS",
+    "front_matter:PRESCRIBED_CLAUSES"
+  ],
+  "definition_allowlist": [
+    "Premises",
+    "Property",
+    "Demised Premises",
+    "Demise",
+    "Building",
+    "Unit"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "lease_summary",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Current lease operative clauses and schedules — the binding text (especially Schedule 1 / plans describing the demise).\n2. Lease summary / particulars and prescribed clauses — quick reference for address and premises label; if they conflict with operative text or Schedule 1, prefer operative text and the schedule description.\n3. Cover page — use for address only when particulars are silent.\n4. Definitions — interpret defined terms (e.g. 'Premises', 'Property'); do not override clear operative wording.\n5. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — PROPERTY:\n- 'Property Address' is the clean postal/location address of the property (include postcode when stated). Do not include party names, title numbers, or narrative about the demise.\n- 'Demised Premises' is the physical/legal description of what is demised only (e.g. floors, unit, boundaries, plan references, exclusions). Do not repeat the postal address — that belongs in Property Address. Do not prefix the value with labels such as 'Description:'.\n- Particulars often label the field 'PREMISES' — treat that as the property/premises identity; for Demised Premises, extract the descriptive content (often pointing to Schedule 1 or a plan), not the address line alone.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=not_present means the lease addresses the topic and there is genuinely no address or description (rare for property fields).\n- status=unclear means evidence is insufficient or contradictory.\n- For free-text fields: return only the requested content or blank if not determinable.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following property fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "property_address",
+      "label": "Property Address",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return a clean standalone property address only (street, unit, town/city, postcode if stated). Strip labels such as 'PREMISES:' or 'Property:'. Do not include landlord/tenant names, title numbers, or a description of floors/areas — those belong in Demised Premises. Prefer the most complete postal address in Schedule 1 or particulars over a short marketing name alone. Leave blank with status=unclear if no address can be identified. If address or premises description differs between current and annexed lease particulars: value from current only; comparative reasoning and quotes from both segments when they differ.",
+      "required": true
+    },
+    {
+      "field_id": "property_demised_premises",
+      "label": "Demised Premises",
+      "format": "text",
+      "allowed_values": [],
+      "decision_rule": "Return only a concise description of what is demised (e.g. floors, use, boundaries, plan references, exclusions). Do not include the postal address. Do not prefix the value with 'Description:' or any other label. Use one short paragraph or a few sentences. Summarise from Schedule 1, the demise clause, plans, and/or particulars. Leave blank with status=unclear if no description can be identified beyond a bare defined term (e.g. 'the Premises' with no further detail in the pack). If demised premises description differs between segments: value from current only; comparative reasoning and quotes from both segments when they differ.",
+      "required": true
+    }
+  ]
+}

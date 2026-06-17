@@ -1,0 +1,77 @@
+{
+  "profiles": {
+    "gemini_fast": {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "gemini_pro": {
+      "provider": "gemini",
+      "model": "gemini-2.5-pro",
+      "temperature": 0,
+      "max_output_tokens": 16384
+    },
+    "gemini-3-flash-preview": {
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "gpt_strict": {
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "gpt_mini": {
+      "provider": "openai",
+      "model": "gpt-4.1-mini",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "gpt_54": {
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "claude_reasoning": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-5",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "claude_fast": {
+      "provider": "anthropic",
+      "model": "claude-haiku-4-5",
+      "temperature": 0,
+      "max_output_tokens": 8192
+    },
+    "fake": {
+      "provider": "fake",
+      "model": "fake-model-v1",
+      "temperature": 0,
+      "max_output_tokens": 0
+    }
+  },
+  "group_defaults": {
+    "parties": "gemini-3-flash-preview",
+    "property": "gemini-3-flash-preview",
+    "lease_details": "gemini-3-flash-preview",
+    "financials": "gemini-3-flash-preview",
+    "permitted_use": "gemini-3-flash-preview",
+    "statutory_status": "gemini-3-flash-preview",
+    "rent_review_header": "gemini-3-flash-preview",
+    "omv_disregards": "gemini-3-flash-preview",
+    "omv_assumptions": "gemini-3-flash-preview",
+    "repairs_decorations": "gemini-3-flash-preview",
+    "alterations": "gemini-3-flash-preview",
+    "alienation": "gemini-3-flash-preview",
+    "break_rights": "gemini-3-flash-preview",
+    "third_party": "gemini-3-flash-preview",
+    "rights_granted": "gemini-3-flash-preview",
+    "insurance": "gemini-3-flash-preview",
+    "service_charge": "gemini-3-flash-preview"
+  }
+}

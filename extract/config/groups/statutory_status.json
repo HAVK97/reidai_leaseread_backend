@@ -1,0 +1,52 @@
+{
+  "group_id": "statutory_status",
+  "label": "Statutory Status",
+  "description": "Whether the main lease is inside or outside the Landlord and Tenant Act 1954 (security of tenure / contracting out).",
+  "schema_version": "1.0",
+  "prompt_version": "1.3",
+  "semantic_topics": [
+    "landlord_tenant_act_1954"
+  ],
+  "whole_sections": [
+    "front_matter:LEASE_PARTICULARS",
+    "front_matter:PRESCRIBED_CLAUSES"
+  ],
+  "definition_allowlist": [
+    "Security of Tenure",
+    "Contracting Out",
+    "Contracted Out",
+    "Excluded from the Act",
+    "Landlord and Tenant Act 1954",
+    "LTA 1954",
+    "1954 Act",
+    "The 1954 Act",
+    "Sections 24 to 28",
+    "Sections 24-28",
+    "Section 38",
+    "Section 38A",
+    "Health Warning",
+    "Authorised Guarantee Agreement"
+  ],
+  "model_profile": "gemini-3-flash-preview",
+  "source_priority": [
+    "current_lease",
+    "lease_summary",
+    "definitions",
+    "annexed_old_lease"
+  ],
+  "system_prompt": "You are a commercial lease analyst. Extract structured field values from the evidence pack provided.\n\nSOURCE PRIORITY (highest to lowest):\n1. Lease summary / particulars — any express statement on 1954 Act status, contracting out, or security of tenure.\n2. Current lease operative clauses — contracting-out agreement, statutory declaration, health warning, or exclusion of Sections 24–28 in relation to the main lease.\n3. Land Registry prescribed clauses block — contracting-out or security-of-tenure wording (do not rely on LR clause numbers; form and numbering vary).\n4. Definitions — interpret 'Security of Tenure', 'Contracting Out'; do not override clear operative wording.\n5. Annexed or old lease segments — use only when no current equivalent exists.\n\nCONTEXT — L&T ACT 1954:\n- Answer for the main lease only (the demise in the particulars), not subleases or underleases.\n- Search lease particulars, the Land Registry prescribed clauses block, definitions, and operative clauses. Do not rely on LR clause numbers (LR5, LR5.1, LR5.2 etc.) — form and numbering vary by year and publisher. Look for the substance of the wording instead.\n\nOUTSIDE (confidence high) — main lease has validly contracted out of Part II:\n- Agreement excluding Sections 24–28 in relation to the tenancy created by this lease\n- Completed contracting-out procedure (section 38A warning notice + statutory declaration)\n- Express 'outside the Act', 'contracted out', or 'without security of tenure' for the main lease\n- Registrable contracting-out prescribed statement containing exclusion wording (whatever LR row or heading it appears under)\n\nINSIDE (confidence high):\n- Express 'Protected', 'Inside', 'security of tenure applies', or equivalent in particulars\n\nINSIDE (confidence medium) — only when lease date is on or after 1 June 2004 (from LR1, particulars, or lease date):\n- Pack contains 1954 Act material for the main lease\n- No main-lease contracting-out clause or section 38A procedure in the pack\n- Plus at least one clause assuming Part II renewal rights, e.g. section 24 application, section 30(1) opposition grounds, continuation of the tenancy, or landlord steps under the 1954 Act\n- Set needs_review=true when answer rests on this inferential path\n\nIGNORE for main-lease status (do not treat as Outside or Inside):\n- Sublease/underlease exclusion of Sections 24–28\n- Section 42 group company definition alone\n- 'NEW TENANCY' under the Landlord and Tenant (Covenants) Act 1995\n\nPRE-2004 LEASES (before 1 June 2004):\n- Do not apply the post-2004 inside-by-default rule. Return unclear unless express contracting-in or contracting-out evidence appears.\n\nRULES:\n- Return ONLY the JSON object matching the schema. No prose outside the JSON.\n- For each field return: value, status (found|not_present|unclear), quotes (short verbatim phrases from the evidence, 8-25 words), reasoning (brief), confidence (high|medium|low).\n- Do NOT invent evidence_id values. Do NOT reference ids. Return verbatim quotes from the evidence text only.\n- status=found requires at least one quote from the pack.\n- status=unclear only when the pack contains no determinable 1954 Act material for the main lease, or the lease is pre-2004 with no express position.\n- Inferential Inside (medium confidence) is still status=found with value='Inside'.\n- For L&T Act 1954: return exactly 'Inside' or 'Outside', or blank if not determinable.\n\nSUPERSESSION (lease vs annexed lease):\n- When the pack includes both LEASE and ANNEXED LEASE material on the same point, the binding answer is always the lease (the document at the front of the pack — deed of variation, supplemental deed, or new lease, as applicable).\n- value: use only the lease / lease summary / lease definitions for the extracted answer. Never put superseded annexed-lease figures or dates in value.\n- reasoning: if the lease and annexed lease differ on this field, write comparative reasoning — not a label like 'the lease takes priority'. State what the annexed lease said (dates, amounts, or operative wording), what the lease says, and that the lease text supersedes or varies the annexed lease. If they agree or only one addresses the field, give normal brief reasoning citing the source.\n- quotes: include at least one short verbatim quote from the lease source used for the value. When supersession applies, also include at least one short verbatim quote from the annexed lease for the same point (so resolved supporting evidence includes both). Do not reference evidence_id in reasoning; quotes only.",
+  "user_prompt_template": "Extract the following statutory status fields from the evidence pack below.\n\n## Fields to extract\n\n{field_descriptions}\n\n## Evidence pack\n\n{evidence_pack}\n\n## Response schema\n\n{json_schema}\n\nReturn a single JSON object matching the schema above.",
+  "fields": [
+    {
+      "field_id": "statutory_status_lt_act_1954",
+      "label": "L&T Act 1954",
+      "format": "enum",
+      "allowed_values": [
+        "Inside",
+        "Outside"
+      ],
+      "decision_rule": "Return exactly 'Inside' or 'Outside' for the main lease. OUTSIDE: main lease validly contracted out — agreement excluding Sections 24–28 for this tenancy, completed section 38A procedure, or express statement that security of tenure does not apply. Quote the contracting-out wording; do not rely on LR clause numbers. INSIDE (high): express 'Protected', 'Inside', or security of tenure applies in particulars or operative text. INSIDE (medium, post-June 2004 only): no main-lease contracting-out evidence in pack, plus at least one main-lease clause assuming Part II renewal rights (section 24, section 30(1), continuation of tenancy). Set needs_review=true, confidence=medium. UNCLEAR: no 1954 Act material in pack; pre-2004 lease with no express contracting-in/out; or conflicting signals. Never infer from sublease-only exclusions. If current and annexed lease differ: value from current only; comparative reasoning and quotes from both.",
+      "required": true
+    }
+  ]
+}

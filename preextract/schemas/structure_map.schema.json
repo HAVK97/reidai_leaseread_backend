@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StructureMap",
+  "type": "object",
+  "required": ["schema_version", "doc_id", "segments"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "doc_id": { "type": "string" },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "anchors_flat", "structure_tree", "toc_lines", "box_assignments"],
+        "properties": {
+          "segment_id": { "type": "string" },
+          "pages_count": { "type": "integer", "minimum": 0 },
+          "toc_lines": { "type": "array", "items": { "type": "string" } },
+          "anchors_flat": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["anchor_id", "family", "token", "title", "page_idx"],
+              "properties": {
+                "anchor_id": { "type": "integer" },
+                "evidence_id": { "type": ["string", "null"] },
+                "page_idx": { "type": "integer" },
+                "box": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 },
+                "raw_text": { "type": "string" },
+                "norm_text": { "type": "string" },
+                "label": { "type": "string" },
+                "family": { "type": "string" },
+                "level": { "type": "integer" },
+                "token": { "type": "string" },
+                "title": { "type": "string" },
+                "confidence": { "type": "number" },
+                "parent_id": { "type": ["integer", "null"] }
+              }
+            }
+          },
+          "structure_tree": { "type": "array" },
+          "box_assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "page_idx": { "type": "integer" },
+                "page_number": { "type": "integer" },
+                "element_idx": { "type": "integer" },
+                "evidence_id": { "type": ["string", "null"] },
+                "label": { "type": ["string", "null"] },
+                "box": { "type": "array" },
+                "anchor_id": { "type": ["integer", "null"] },
+                "section_family": { "type": ["string", "null"] },
+                "section_token": { "type": ["string", "null"] },
+                "section_title": { "type": ["string", "null"] },
+                "section_level": { "type": ["integer", "null"] },
+                "parent_token": { "type": ["string", "null"] },
+                "sub_parent_token": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ValidationReport",
+  "type": "object",
+  "required": ["schema_version", "doc_id", "passed", "stage_results"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "doc_id": { "type": "string" },
+    "passed": { "type": "boolean" },
+    "stage_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stage", "passed", "errors", "warnings", "counts"],
+        "properties": {
+          "stage": { "type": "string" },
+          "passed": { "type": "boolean" },
+          "errors": { "type": "array", "items": { "type": "string" } },
+          "warnings": { "type": "array", "items": { "type": "string" } },
+          "counts": { "type": "object" }
+        }
+      }
+    },
+    "counts": { "type": "object" },
+    "spot_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "passed": { "type": "boolean" },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

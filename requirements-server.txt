@@ -1,0 +1,17 @@
+# ReidAI API server dependencies.
+# Install from repo root:
+#   pip install -r requirements-server.txt
+
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.12
+pydantic-settings>=2.6.0
+
+# Pipeline dependencies (also required for ingest/preextract/extract)
+llama-cloud
+pymupdf
+pillow
+requests
+google-genai
+openai
+anthropic

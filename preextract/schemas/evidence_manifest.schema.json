@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvidenceManifest",
+  "type": "object",
+  "required": ["schema_version", "doc_id", "pages", "evidence"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "doc_id": { "type": "string" },
+    "source_file": { "type": ["string", "null"] },
+    "parse_job": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": ["string", "null"] },
+        "tier": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "created_at": { "type": ["string", "null"] }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["page_number", "page_width", "page_height"],
+        "properties": {
+          "page_number": { "type": "integer", "minimum": 1 },
+          "page_width": { "type": "number", "exclusiveMinimum": 0 },
+          "page_height": { "type": "number", "exclusiveMinimum": 0 },
+          "markdown": { "type": "string" }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "page_number", "source", "label", "text", "raw_bbox", "normalized"],
+        "properties": {
+          "evidence_id": {
+            "type": "string",
+            "pattern": "^p\\d+_(item_\\d+_\\d+|layout_image_\\d+)$"
+          },
+          "page_number": { "type": "integer", "minimum": 1 },
+          "source": { "type": "string", "enum": ["items", "images_content_metadata"] },
+          "parse_path": { "type": "string" },
+          "item_type": { "type": ["string", "null"] },
+          "label": { "type": ["string", "null"] },
+          "text": { "type": "string" },
+          "text_preview": { "type": "string" },
+          "raw_bbox": {
+            "type": "object",
+            "required": ["x", "y", "w", "h"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" },
+              "label": { "type": ["string", "null"] },
+              "confidence": { "type": ["number", "null"] },
+              "start_index": { "type": ["integer", "null"] },
+              "end_index": { "type": ["integer", "null"] }
+            }
+          },
+          "normalized": {
+            "type": ["object", "null"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "bbox_index": { "type": "integer", "minimum": 0 },
+          "bbox_count_for_item": { "type": "integer", "minimum": 1 },
+          "is_leaf": { "type": "boolean" },
+          "asset": {
+            "type": "object",
+            "properties": {
+              "filename": { "type": "string" },
+              "category": { "type": ["string", "null"] },
+              "content_type": { "type": ["string", "null"] },
+              "presigned_url": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}
